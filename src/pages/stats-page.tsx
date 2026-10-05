@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Clock3,
   Inbox,
-  Timer,
   Users,
   XCircle,
 } from 'lucide-react'
@@ -28,8 +27,13 @@ const PERIODS: Array<{ value: StatsPeriod; label: string }> = [
   { value: 'all', label: 'Hammasi' },
 ]
 
-function formatDay(date: string) {
+function statusLabelClean(status: keyof typeof STATUS_LABELS) {
+  return STATUS_LABELS[status].replace(/^[^\s]+\s/, '')
+}
+
+function formatDay(date: string, compact: boolean) {
   const [, month, day] = date.split('-')
+  if (compact) return day
   return `${day}.${month}`
 }
 
@@ -99,6 +103,8 @@ function DailyChart({
   data: Array<{ date: string; count: number }>
 }) {
   const max = Math.max(1, ...data.map((item) => item.count))
+  const dense = data.length > 14
+  const labelStep = data.length > 20 ? 5 : data.length > 14 ? 3 : 1
 
   if (data.length === 0) {
     return (
@@ -109,29 +115,57 @@ function DailyChart({
   }
 
   return (
-    <div className="flex h-44 items-end gap-1.5 sm:gap-2">
-      {data.map((item) => (
-        <div
-          key={item.date}
-          className="flex min-w-0 flex-1 flex-col items-center gap-2"
-          title={`${item.date}: ${item.count}`}
-        >
-          <span className="text-[10px] tabular-nums text-muted-foreground">
-            {item.count || ''}
-          </span>
-          <div className="flex h-28 w-full items-end">
+    <div className="-mx-1 overflow-x-auto px-1">
+      <div
+        className={cn(
+          'flex h-48 items-end',
+          dense ? 'min-w-[36rem] gap-1' : 'w-full gap-1.5 sm:gap-2',
+        )}
+      >
+        {data.map((item, index) => {
+          const showLabel =
+            index === 0 ||
+            index === data.length - 1 ||
+            index % labelStep === 0
+
+          return (
             <div
-              className="w-full rounded-t-md bg-primary/80 transition-[height]"
-              style={{
-                height: `${Math.max(item.count ? 8 : 2, (item.count / max) * 100)}%`,
-              }}
-            />
-          </div>
-          <span className="truncate text-[10px] tabular-nums text-muted-foreground">
-            {formatDay(item.date)}
-          </span>
-        </div>
-      ))}
+              key={item.date}
+              className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
+              title={`${formatDay(item.date, false)}: ${item.count} ta`}
+            >
+              <span className="h-3 text-[10px] tabular-nums text-muted-foreground">
+                {item.count > 0 ? item.count : ''}
+              </span>
+              <div className="flex h-28 w-full items-end">
+                <div
+                  className="mx-auto w-full max-w-6 rounded-t-md bg-primary/80 transition-[height]"
+                  style={{
+                    height: `${Math.max(
+                      item.count ? 10 : 3,
+                      (item.count / max) * 100,
+                    )}%`,
+                  }}
+                />
+              </div>
+              <span
+                className={cn(
+                  'h-4 text-center text-[10px] tabular-nums text-muted-foreground',
+                  !showLabel && 'invisible',
+                )}
+              >
+                {formatDay(item.date, dense)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      {dense ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Sanalar: faqat ba’zi kunlar ko‘rsatiladi. Batafsil uchun ustunga
+          boring.
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -145,15 +179,17 @@ export function StatsPage() {
   })
 
   const stats = query.data
+  const periodLabel =
+    PERIODS.find((item) => item.value === period)?.label ?? period
 
   const statusItems = useMemo(() => {
     if (!stats) return []
-    return (Object.keys(stats.byStatus) as Array<keyof typeof stats.byStatus>).map(
-      (key) => ({
-        label: STATUS_LABELS[key],
-        value: stats.byStatus[key],
-      }),
-    )
+    return (
+      Object.keys(stats.byStatus) as Array<keyof typeof stats.byStatus>
+    ).map((key) => ({
+      label: STATUS_LABELS[key],
+      value: stats.byStatus[key],
+    }))
   }, [stats])
 
   return (
@@ -172,7 +208,7 @@ export function StatsPage() {
           onValueChange={(value) => setPeriod((value as StatsPeriod) ?? '30d')}
         >
           <SelectTrigger className="h-9 w-full sm:w-40">
-            <SelectValue placeholder="Davr" />
+            <SelectValue placeholder="Davr">{periodLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {PERIODS.map((item) => (
@@ -204,7 +240,7 @@ export function StatsPage() {
             <StatCard
               title="Navbatda"
               value={stats.summary.queue}
-              hint="PENDING + UNDER_REVIEW"
+              hint={`${statusLabelClean('PENDING')} + ${statusLabelClean('UNDER_REVIEW')}`}
               icon={Clock3}
             />
             <StatCard
@@ -231,6 +267,9 @@ export function StatsPage() {
                 <CardTitle className="text-base font-medium">
                   Kunlik oqim
                 </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Har bir kun nechta ariza kelgani (Toshkent vaqti).
+                </p>
               </CardHeader>
               <CardContent>
                 <DailyChart data={stats.daily} />
@@ -239,9 +278,7 @@ export function StatsPage() {
 
             <Card className="border-border/70 shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base font-medium">
-                  Holatlar
-                </CardTitle>
+                <CardTitle className="text-base font-medium">Holatlar</CardTitle>
               </CardHeader>
               <CardContent>
                 <DistributionList items={statusItems} />
@@ -308,41 +345,48 @@ export function StatsPage() {
                   <Users className="size-4 text-muted-foreground" />
                   Ko‘nikmalar
                 </CardTitle>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Anketadagi 1–10 ballik o‘z baholarining o‘rtachasi.
+                </p>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-2">
                   {[
                     { label: 'Texnika', value: stats.skills.avgTech },
-                    { label: 'Rus', value: stats.skills.avgRussian },
-                    { label: 'Ingliz', value: stats.skills.avgEnglish },
+                    { label: 'Rus tili', value: stats.skills.avgRussian },
+                    { label: 'Ingliz tili', value: stats.skills.avgEnglish },
                   ].map((item) => (
                     <div
                       key={item.label}
                       className="rounded-lg border border-border/60 bg-muted/30 p-3 text-center"
                     >
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] leading-tight text-muted-foreground">
                         {item.label}
                       </p>
                       <p className="mt-1 text-lg font-semibold tabular-nums">
                         {item.value ?? '—'}
                       </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        o‘rtacha
+                      </p>
                     </div>
                   ))}
                 </div>
                 <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Timer className="size-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Kuchli profil</span>
-                  </div>
-                  <p className="mt-1 text-sm leading-relaxed">
+                  <p className="text-sm font-medium">Kuchli profil</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    Texnika, rus va inglizning{' '}
+                    <span className="text-foreground">har biri ≥ 7</span>{' '}
+                    bo‘lgan arizalar.
+                  </p>
+                  <p className="mt-2 text-sm">
                     <span className="font-semibold tabular-nums">
                       {stats.skills.strongProfileCount}
                     </span>{' '}
-                    ta (
+                    ta ·{' '}
                     <span className="tabular-nums">
                       {stats.skills.strongProfileRate}%
                     </span>
-                    ) — barcha ballar ≥ 7
                   </p>
                 </div>
               </CardContent>
