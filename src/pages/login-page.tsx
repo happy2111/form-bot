@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function LoginPage() {
   const { user, loading, login } = useAuth()
@@ -35,10 +36,13 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4 py-8">
+    <div className="relative flex min-h-dvh items-center justify-center px-4 py-8">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md border-border/70 shadow-sm">
         <CardHeader className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
             ApplePark Form
           </p>
           <CardTitle className="text-3xl text-balance">Admin kirish</CardTitle>

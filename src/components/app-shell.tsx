@@ -4,6 +4,7 @@ import { ClipboardList, LogOut, Menu } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   Sheet,
   SheetContent,
@@ -19,11 +20,18 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 py-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          ApplePark
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold text-balance">Form Admin</h1>
-        <p className="mt-2 text-sm text-pretty text-muted-foreground">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase text-muted-foreground">
+              ApplePark
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold text-balance">
+              Form Admin
+            </h1>
+          </div>
+          <ThemeToggle />
+        </div>
+        <p className="text-sm text-pretty text-muted-foreground">
           Ishga arizalarni ko‘rib chiqish va holatni boshqarish.
         </p>
       </div>
@@ -78,21 +86,24 @@ export function AppShell() {
             <p className="text-xs text-muted-foreground">ApplePark</p>
             <p className="font-medium">Form Admin</p>
           </div>
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger
-              render={
-                <Button variant="outline" size="icon" aria-label="Menyu" />
-              }
-            >
-              <Menu className="size-4" />
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0 sm:max-w-none">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Menyu</SheetTitle>
-              </SheetHeader>
-              <NavContent onNavigate={() => setOpen(false)} />
-            </SheetContent>
-          </Sheet>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger
+                render={
+                  <Button variant="outline" size="icon" aria-label="Menyu" />
+                }
+              >
+                <Menu className="size-4" />
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] p-0 sm:max-w-none">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menyu</SheetTitle>
+                </SheetHeader>
+                <NavContent onNavigate={() => setOpen(false)} />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
 
         <main className="flex-1 px-4 py-5 md:px-8 md:py-8">
