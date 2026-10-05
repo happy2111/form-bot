@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { Search, Trash2 } from 'lucide-react'
+import { ClipboardList, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StatusBadge } from '@/components/status-badge'
+import { formatTashkentDateTime } from '@/lib/tashkent-time'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,91 +79,69 @@ export function ApplicationsPage() {
     return Math.max(1, Math.ceil(query.data.total / query.data.limit))
   }, [query.data])
 
+  const isEmpty = !query.isLoading && (query.data?.items.length ?? 0) === 0
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-3xl font-semibold text-balance md:text-4xl">
-            Arizalar
-          </h2>
-          <p className="mt-1 text-sm text-pretty text-muted-foreground">
-            Telegram orqali kelgan ishga arizalar ro‘yxati.
-          </p>
-        </div>
-        {isAdmin ? (
-          <AlertDialog>
-            <AlertDialogTrigger
-              render={<Button variant="destructive" className="gap-2" />}
-            >
-              <Trash2 className="size-4" />
-              Hammasini tozalash
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Barcha arizalarni o‘chirish?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Bu amal qaytarilmaydi. Barcha arizalar va ularning rasmlari
-                  o‘chiriladi.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => clearMutation.mutate()}
-                  className="bg-destructive text-white hover:bg-destructive/90"
-                >
-                  O‘chirish
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ) : null}
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
+          Arizalar
+        </h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-pretty text-muted-foreground">
+          Telegram orqali kelgan ishga arizalar ro‘yxati.
+        </p>
       </div>
 
-      <Card>
-        <CardHeader className="gap-4 space-y-0 md:flex-row md:items-center md:justify-between">
-          <CardTitle className="text-base font-medium">
-            Jami:{' '}
-            <span className="tabular-nums">{query.data?.total ?? '—'}</span>
-          </CardTitle>
-          <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
-            <div className="relative min-w-0 flex-1 sm:w-64">
-              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="pl-8"
-                placeholder="Qidirish: ism, telefon..."
-                value={search}
-                onChange={(e) => {
+      <Card className="border-border/80 bg-card shadow-sm">
+        <CardHeader className="gap-3 space-y-0 border-b border-border/60 pb-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Jami:{' '}
+              <span className="tabular-nums text-foreground">
+                {query.data?.total ?? '—'}
+              </span>
+            </CardTitle>
+
+            <div className="flex w-full gap-2 sm:w-auto sm:max-w-md sm:flex-1">
+              <div className="relative min-w-0 flex-1">
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-9 border-border/70 bg-background/60 pl-8 shadow-none"
+                  placeholder="Qidirish..."
+                  value={search}
+                  onChange={(e) => {
+                    setPage(1)
+                    setSearch(e.target.value)
+                  }}
+                />
+              </div>
+              <Select
+                value={status}
+                onValueChange={(value) => {
                   setPage(1)
-                  setSearch(e.target.value)
+                  setStatus((value as ApplicationStatus | 'ALL') ?? 'ALL')
                 }}
-              />
+              >
+                <SelectTrigger className="h-9 w-[9.5rem] shrink-0 border-border/70 bg-background/60 shadow-none">
+                  <SelectValue placeholder="Holat" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item === 'ALL' ? 'Barchasi' : STATUS_LABELS[item]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setPage(1)
-                setStatus((value as ApplicationStatus | 'ALL') ?? 'ALL')
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Holat" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUSES.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {item === 'ALL' ? 'Barchasi' : STATUS_LABELS[item]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </CardHeader>
-        <CardContent className="px-0 md:px-0">
+
+        <CardContent className="px-0 pt-0 md:px-0">
           <div className="hidden md:block">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="hover:bg-transparent">
                   <TableHead>Ism</TableHead>
                   <TableHead>Yosh</TableHead>
                   <TableHead>Telefon</TableHead>
@@ -184,14 +162,18 @@ export function ApplicationsPage() {
                   : null}
                 {query.data?.items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.fullName}</TableCell>
-                    <TableCell className="tabular-nums">{item.age}</TableCell>
-                    <TableCell className="tabular-nums">{item.phone}</TableCell>
+                    <TableCell className="font-semibold">{item.fullName}</TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {item.age}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {item.phone}
+                    </TableCell>
                     <TableCell>
                       <StatusBadge status={item.status} />
                     </TableCell>
                     <TableCell className="tabular-nums text-muted-foreground">
-                      {format(new Date(item.createdAt), 'dd.MM.yyyy HH:mm')}
+                      {formatTashkentDateTime(item.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -204,21 +186,11 @@ export function ApplicationsPage() {
                     </TableCell>
                   </TableRow>
                 ))}
-                {!query.isLoading && query.data?.items.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="py-10 text-center text-muted-foreground"
-                    >
-                      Arizalar topilmadi
-                    </TableCell>
-                  </TableRow>
-                ) : null}
               </TableBody>
             </Table>
           </div>
 
-          <div className="space-y-3 px-4 md:hidden">
+          <div className="space-y-3 px-4 pt-4 md:hidden">
             {query.isLoading
               ? Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-28 w-full rounded-xl" />
@@ -228,33 +200,45 @@ export function ApplicationsPage() {
               <Link
                 key={item.id}
                 to={`/applications/${item.id}`}
-                className="block rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40"
+                className="block rounded-xl border border-border/80 bg-muted/40 p-4 shadow-[0_1px_0_oklch(1_0_0/0.04)] transition-colors hover:bg-muted/60 dark:bg-neutral-900 dark:hover:bg-neutral-900/80"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-balance">{item.fullName}</p>
-                    <p className="mt-1 text-sm tabular-nums text-muted-foreground">
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="truncate text-base font-semibold leading-snug text-balance">
+                      {item.fullName}
+                    </p>
+                    <p className="text-sm leading-relaxed tabular-nums text-muted-foreground">
                       {item.phone}
                     </p>
                   </div>
                   <StatusBadge status={item.status} />
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                <div className="mt-3.5 flex items-center justify-between text-xs leading-relaxed text-muted-foreground/90">
                   <span className="tabular-nums">{item.age} yosh</span>
                   <span className="tabular-nums">
-                    {format(new Date(item.createdAt), 'dd.MM.yyyy HH:mm')}
+                    {formatTashkentDateTime(item.createdAt)}
                   </span>
                 </div>
               </Link>
             ))}
-            {!query.isLoading && query.data?.items.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Arizalar topilmadi
-              </p>
-            ) : null}
           </div>
 
-          <div className="mt-4 flex items-center justify-between px-4 pb-2">
+          {isEmpty ? (
+            <div className="flex flex-col items-center justify-center gap-3 px-4 py-14 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <ClipboardList className="size-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Arizalar topilmadi</p>
+                <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+                  Qidiruv yoki filtr bo‘yicha natija yo‘q. Boshqa so‘rov
+                  sinab ko‘ring.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex items-center justify-between border-t border-border/60 px-4 py-3">
             <p className="text-sm tabular-nums text-muted-foreground">
               Sahifa {page}/{totalPages}
             </p>
@@ -279,6 +263,43 @@ export function ApplicationsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {isAdmin ? (
+        <div className="flex justify-end pt-1">
+          <AlertDialog>
+            <AlertDialogTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 text-muted-foreground hover:text-destructive"
+                />
+              }
+            >
+              <Trash2 className="size-3.5" />
+              Hammasini tozalash
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Barcha arizalarni o‘chirish?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Bu amal qaytarilmaydi. Barcha arizalar va ularning rasmlari
+                  o‘chiriladi.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => clearMutation.mutate()}
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                >
+                  O‘chirish
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ) : null}
     </div>
   )
 }

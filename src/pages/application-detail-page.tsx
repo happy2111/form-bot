@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { format } from 'date-fns'
 import { ArrowLeft, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { StatusBadge } from '@/components/status-badge'
+import { formatTashkentDateTime } from '@/lib/tashkent-time'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -122,7 +122,7 @@ export function ApplicationDetailPage() {
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <StatusBadge status={app.status} />
               <span className="text-sm tabular-nums text-muted-foreground">
-                {format(new Date(app.createdAt), 'dd.MM.yyyy HH:mm')}
+                {formatTashkentDateTime(app.createdAt)}
               </span>
             </div>
           </div>

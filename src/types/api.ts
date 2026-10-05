@@ -54,8 +54,8 @@ export interface ApplicationsListResponse {
 }
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
-  PENDING: 'Ko‘rib chiqilmoqda',
-  UNDER_REVIEW: 'Tekshirilmoqda',
-  ACCEPTED: 'Qabul qilindi',
-  REJECTED: 'Rad etildi',
+  PENDING: '⏳ Ko‘rib chiqilmoqda',
+  UNDER_REVIEW: '🔍 Tekshirilmoqda',
+  ACCEPTED: '✅ Qabul qilindi',
+  REJECTED: '❌ Rad etildi',
 }
