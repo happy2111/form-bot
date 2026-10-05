@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, Outlet, useNavigate } from 'react-router-dom'
-import { ClipboardList, LogOut, Menu } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { BarChart3, ClipboardList, LogOut, Menu } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -12,10 +12,19 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout, isAdmin } = useAuth()
   const navigate = useNavigate()
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      'inline-flex h-9 w-full items-center justify-start gap-2 rounded-md px-3 text-sm font-medium transition-colors',
+      isActive
+        ? 'bg-muted text-foreground'
+        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+    )
 
   return (
     <div className="flex h-full flex-col">
@@ -27,14 +36,14 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       <Separator />
       <nav className="flex flex-1 flex-col gap-1 p-3">
-        <Button
-          variant="ghost"
-          className="justify-start gap-2"
-          render={<Link to="/" onClick={onNavigate} />}
-        >
+        <NavLink to="/" end className={linkClass} onClick={onNavigate}>
           <ClipboardList className="size-4" />
           Arizalar
-        </Button>
+        </NavLink>
+        <NavLink to="/stats" className={linkClass} onClick={onNavigate}>
+          <BarChart3 className="size-4" />
+          Statistika
+        </NavLink>
       </nav>
       <div className="mt-auto border-t p-4">
         <div className="mb-3">

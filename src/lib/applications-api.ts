@@ -1,10 +1,12 @@
 import { api } from '@/lib/api'
 import type {
   Application,
+  ApplicationStats,
   ApplicationStatus,
   ApplicationsListResponse,
   AuthUser,
   LoginResponse,
+  StatsPeriod,
 } from '@/types/api'
 
 export async function login(email: string, password: string) {
@@ -68,5 +70,12 @@ export async function clearAllApplications() {
   const { data } = await api.delete<{ deleted: number }>(
     '/api/admin/applications/clear-all',
   )
+  return data
+}
+
+export async function fetchStats(period: StatsPeriod = '30d') {
+  const { data } = await api.get<ApplicationStats>('/api/admin/stats', {
+    params: { period },
+  })
   return data
 }

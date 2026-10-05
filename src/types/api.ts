@@ -59,3 +59,42 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   ACCEPTED: '✅ Qabul qilindi',
   REJECTED: '❌ Rad etildi',
 }
+
+export type StatsPeriod = 'today' | '7d' | '30d' | 'all'
+
+export interface ApplicationStats {
+  period: StatsPeriod
+  summary: {
+    total: number
+    queue: number
+    accepted: number
+    rejected: number
+    acceptedRate: number
+    rejectedRate: number
+    avgDecisionHours: number | null
+  }
+  byStatus: Record<ApplicationStatus, number>
+  byGender: {
+    MALE: number
+    FEMALE: number
+  }
+  ageBuckets: {
+    '18-22': number
+    '23-26': number
+    '27-30': number
+    other: number
+  }
+  readyForVideo: {
+    yes: number
+    no: number
+  }
+  skills: {
+    avgTech: number | null
+    avgRussian: number | null
+    avgEnglish: number | null
+    avgAge: number | null
+    strongProfileCount: number
+    strongProfileRate: number
+  }
+  daily: Array<{ date: string; count: number }>
+}
