@@ -20,20 +20,10 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col">
       <div className="px-5 py-6">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase text-muted-foreground">
-              ApplePark
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold text-balance">
-              Form Admin
-            </h1>
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold">ApplePark</p>
           <ThemeToggle />
         </div>
-        <p className="text-sm text-pretty text-muted-foreground">
-          Ishga arizalarni ko‘rib chiqish va holatni boshqarish.
-        </p>
       </div>
       <Separator />
       <nav className="flex flex-1 flex-col gap-1 p-3">
