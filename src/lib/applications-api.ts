@@ -7,6 +7,7 @@ import type {
   AuthUser,
   LoginResponse,
   StatsPeriod,
+  TelegramAccess,
 } from '@/types/api'
 
 export async function login(email: string, password: string) {
@@ -77,5 +78,40 @@ export async function fetchStats(period: StatsPeriod = '30d') {
   const { data } = await api.get<ApplicationStats>('/api/admin/stats', {
     params: { period },
   })
+  return data
+}
+
+export async function fetchTelegramAccess() {
+  const { data } = await api.get<TelegramAccess[]>('/api/admin/telegram-access')
+  return data
+}
+
+export async function createTelegramAccess(payload: {
+  telegramId: string
+  label?: string
+  isActive?: boolean
+}) {
+  const { data } = await api.post<TelegramAccess>(
+    '/api/admin/telegram-access',
+    payload,
+  )
+  return data
+}
+
+export async function updateTelegramAccess(
+  id: string,
+  payload: { label?: string; isActive?: boolean },
+) {
+  const { data } = await api.patch<TelegramAccess>(
+    `/api/admin/telegram-access/${id}`,
+    payload,
+  )
+  return data
+}
+
+export async function deleteTelegramAccess(id: string) {
+  const { data } = await api.delete<{ id: string }>(
+    `/api/admin/telegram-access/${id}`,
+  )
   return data
 }

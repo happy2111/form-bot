@@ -98,3 +98,12 @@ export interface ApplicationStats {
   }
   daily: Array<{ date: string; count: number }>
 }
+
+export interface TelegramAccess {
+  id: string
+  telegramId: string
+  label: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}

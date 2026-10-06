@@ -9,6 +9,7 @@ import { ApplicationDetailPage } from '@/pages/application-detail-page'
 import { ApplicationsPage } from '@/pages/applications-page'
 import { LoginPage } from '@/pages/login-page'
 import { StatsPage } from '@/pages/stats-page'
+import { TelegramAccessPage } from '@/pages/telegram-access-page'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,10 @@ export default function App() {
                 <Route element={<AppShell />}>
                   <Route index element={<ApplicationsPage />} />
                   <Route path="stats" element={<StatsPage />} />
+                  <Route
+                    path="telegram-access"
+                    element={<TelegramAccessPage />}
+                  />
                   <Route
                     path="applications/:id"
                     element={<ApplicationDetailPage />}

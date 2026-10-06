@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart3, ClipboardList, LogOut, Menu } from 'lucide-react'
+import { BarChart3, ClipboardList, LogOut, Menu, Shield } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -44,6 +44,16 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           <BarChart3 className="size-4" />
           Statistika
         </NavLink>
+        {isAdmin ? (
+          <NavLink
+            to="/telegram-access"
+            className={linkClass}
+            onClick={onNavigate}
+          >
+            <Shield className="size-4" />
+            Telegram ruxsat
+          </NavLink>
+        ) : null}
       </nav>
       <div className="mt-auto border-t p-4">
         <div className="mb-3">
